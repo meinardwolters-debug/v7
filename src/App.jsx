@@ -166,6 +166,22 @@ export default function App() {
     if (error) return setMsg("Moment toevoegen mislukt: " + error.message);
     setNewEventTitle(""); setNewEventLocation(""); setMsg("Moment toegevoegd."); await loadEvents();
   }
+
+  async function updateEventField(id, field, value) {
+    const { error } = await supabase
+      .from("events")
+      .update({ [field]: value })
+      .eq("id", id);
+
+    if (error) return setMsg("Moment wijzigen mislukt: " + error.message);
+
+    setEvents(prev =>
+      prev.map(e => e.id === id ? { ...e, [field]: value } : e)
+    );
+
+    setMsg("Moment bijgewerkt.");
+  }
+
   async function removeEvent(id) {
     const { error } = await supabase.from("events").update({ active:false }).eq("id", id);
     if (error) return setMsg("Moment verwijderen mislukt: " + error.message);
@@ -273,7 +289,58 @@ export default function App() {
           </div>
 
           <h3>Momenten beheren</h3><div className="event-form"><input type="date" value={newEventDate} onChange={e=>setNewEventDate(e.target.value)} /><select value={newEventType} onChange={e=>setNewEventType(e.target.value)}><option value="repetitie">Repetitie</option><option value="optreden">Optreden</option></select><input value={newEventTitle} onChange={e=>setNewEventTitle(e.target.value)} placeholder="Titel, optioneel" /><input value={newEventLocation} onChange={e=>setNewEventLocation(e.target.value)} placeholder="Locatie, optioneel" /><button onClick={addEvent}>Toevoegen</button></div>
-          <div className="table-wrap compact"><table><thead><tr><th>Datum</th><th>Type</th><th>Titel</th><th>Locatie</th><th>Actie</th></tr></thead><tbody>{events.map(e=><tr key={e.id}><td>{fmt(e.event_date)}</td><td>{e.event_type}</td><td>{e.title}</td><td>{e.location || "—"}</td><td><button className="outline danger" onClick={()=>removeEvent(e.id)}>Verwijderen</button></td></tr>)}</tbody></table></div>
+          <div className="table-wrap compact">
+            <table>
+              <thead>
+                <tr>
+                  <th>Datum</th>
+                  <th>Type</th>
+                  <th>Titel</th>
+                  <th>Locatie</th>
+                  <th>Actie</th>
+                </tr>
+              </thead>
+              <tbody>
+                {events.map(e =>
+                  <tr key={e.id}>
+                    <td>
+                      <input
+                        type="date"
+                        value={e.event_date}
+                        onChange={ev => updateEventField(e.id, "event_date", ev.target.value)}
+                      />
+                    </td>
+                    <td>
+                      <select
+                        value={e.event_type}
+                        onChange={ev => updateEventField(e.id, "event_type", ev.target.value)}
+                      >
+                        <option value="repetitie">Repetitie</option>
+                        <option value="optreden">Optreden</option>
+                      </select>
+                    </td>
+                    <td>
+                      <input
+                        value={e.title || ""}
+                        onChange={ev => updateEventField(e.id, "title", ev.target.value)}
+                      />
+                    </td>
+                    <td>
+                      <input
+                        value={e.location || ""}
+                        onChange={ev => updateEventField(e.id, "location", ev.target.value)}
+                      />
+                    </td>
+                    <td>
+                      <button className="outline danger" onClick={()=>removeEvent(e.id)}>
+                        Verwijderen
+                      </button>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
           <h3>Aanmeldingen</h3><div className="table-wrap"><table><thead><tr><th>Lid</th><th>Stemgroep</th><th>Status</th><th>Reden/opmerking</th></tr></thead><tbody>{members.map(m=>{const e=current[m.name]||{status:"onbekend",reason:"",note:""};return <tr key={m.name}><td>{m.name}</td><td>{m.voice}</td><td><span className="pill">{e.status}</span></td><td>{[e.reason,e.note].filter(Boolean).join(" · ") || "—"}</td></tr>})}</tbody></table></div>
           <h3>Ledenbeheer</h3><div className="member-form"><input value={newName} onChange={e=>setNewName(e.target.value)} placeholder="Naam" /><select value={newVoice} onChange={e=>setNewVoice(e.target.value)}><option>Sopraan</option><option>Alt</option><option>Tenor</option><option>Bas</option></select><input value={newCode} onChange={e=>setNewCode(e.target.value)} placeholder="Code" /><button onClick={addMember}>Lid toevoegen</button></div>
           <div className="table-wrap"><table><thead><tr><th>Naam</th><th>Stemgroep</th><th>Code</th><th>Actie</th></tr></thead><tbody>{members.map(m=><tr key={m.name}><td>{m.name}</td><td><select value={m.voice} onChange={e=>changeVoice(m.name,e.target.value)}><option>Sopraan</option><option>Alt</option><option>Tenor</option><option>Bas</option></select></td><td><input value={m.login_code || ""} onChange={e=>changeCode(m.name,e.target.value)} /></td><td><button className="outline danger" onClick={()=>removeMember(m.name)}>Verwijderen</button></td></tr>)}</tbody></table></div>

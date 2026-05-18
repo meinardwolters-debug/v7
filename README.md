@@ -1,9 +1,12 @@
-# Exaltation Koor App v5
+# Exaltation Koor App v6
 
-Toegevoegd:
-- leden kunnen zelf hun persoonlijke code wijzigen
-- secretaris krijgt een overzicht per stemgroep
-- bestaande v4 functies blijven behouden
+Nieuw:
+- evenementen direct bewerken
+- datum aanpassen
+- titel aanpassen
+- locatie aanpassen
+- type wijzigen
+- direct opslaan in dashboard
 
-Geen nieuwe SQL nodig als v4 al is uitgevoerd.
+Geen nieuwe SQL nodig.
 Upload alle bestanden naar GitHub en laat Vercel opnieuw deployen.
